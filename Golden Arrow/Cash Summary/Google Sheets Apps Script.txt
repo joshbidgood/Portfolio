@@ -1,0 +1,153 @@
+function resetButton() {
+  var ui = SpreadsheetApp.getUi();
+  
+  // Show a simple message box
+  var response = ui.alert('Confirmation', 'Do you want to reset sheet?', ui.ButtonSet.YES_NO);
+  
+  // Process the user's response
+  if (response == ui.Button.YES) 
+  {
+    clearValues();
+  } 
+}
+
+//Will clear the data entry form of all user input values.
+function clearValues() 
+{
+ var sheet = SpreadsheetApp.getActiveSpreadsheet();
+ sheet.getRange("B3:D7").clearContent();
+ sheet.getRange("B9:D14").clearContent();
+ sheet.getRange("E19").clearContent();
+}
+
+//
+function submitButton()
+{
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var target = ss.getSheetByName("Cash Data");
+  var lastRow = target.getLastRow(); 
+  
+  //
+  if ((lastRow > 1) && (isDateSameAsToday()))
+  {
+    var ui = SpreadsheetApp.getUi();
+    var response = ui.alert('Confirmation', 'Do you want to overwrite data?', ui.ButtonSet.YES_NO);
+    if (response == ui.Button.YES)
+    {
+      writeValues(lastRow)
+    }
+    else
+    {
+      //do nothing
+    }
+  }
+  else
+  {
+    writeValues(lastRow + 1);
+  }
+}
+
+//The following deprecated code has been replaced with a single function writeValues()
+/*
+function submitNewValues()
+{
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  var source = ss.getSheetByName('Cash Summary');
+
+  var target = ss.getSheetByName("Cash Data");
+  var newRow = target.getLastRow() + 1;
+  var total = source.getRange("E18").getValues();
+  var bank = source.getRange("E19").getValues();
+  var diff = source.getRange("E20").getValues();
+  var notes = source.getRange("E3:E7").getValues().flat();
+  var coins = source.getRange("E9:E14").getValues().flat();
+
+  target.getRange(newRow, 1).setValue(formatDate());
+  target.getRange(newRow, 2).setValue(total);
+  target.getRange(newRow, 3).setValue(bank);
+  target.getRange(newRow, 4).setValue(diff);
+  target.getRange(newRow, 5,1,notes.length).setValues([notes]);
+  target.getRange(newRow, 10,1,coins.length).setValues([coins]);
+}
+*/
+
+//The following deprecated code has been replaced with a single function writeValues()
+/*
+function overwriteValues()
+{
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var source = ss.getSheetByName('Cash Summary');
+  var target = ss.getSheetByName("Cash Data");
+  var lastRow = target.getLastRow();
+
+  var total = source.getRange("E18").getValues();
+  var bank = source.getRange("E19").getValues();
+  var diff = source.getRange("E20").getValues();
+  var notes = source.getRange("E3:E7").getValues().flat();
+  var coins = source.getRange("E9:E14").getValues().flat();
+
+  target.getRange(lastRow, 1).setValue(formatDate());
+  target.getRange(lastRow, 2).setValue(total);
+  target.getRange(lastRow, 3).setValue(bank);
+  target.getRange(lastRow, 4).setValue(diff);
+  target.getRange(lastRow, 5,1,notes.length).setValues([notes]);
+  target.getRange(lastRow, 10,1,coins.length).setValues([coins]);
+}
+*/
+
+//Writes the new values from the data entry form into the table.
+//Parameter row: either a new row, or the most recent entry in the table based on date.
+function writeValues(row)
+{
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var source = ss.getSheetByName('Cash Summary');
+  var target = ss.getSheetByName("Cash Data");
+
+  var total = source.getRange("E18").getValues();
+  var bank = source.getRange("E19").getValues();
+  var diff = source.getRange("E20").getValues();
+  var notes = source.getRange("E3:E7").getValues().flat();
+  var coins = source.getRange("E9:E14").getValues().flat();
+
+  target.getRange(row, 1).setValue(formatDate());
+  target.getRange(row, 2).setValue(total);
+  target.getRange(row, 3).setValue(bank);
+  target.getRange(row, 4).setValue(diff);
+  target.getRange(row, 5,1,notes.length).setValues([notes]);
+  target.getRange(row, 10,1,coins.length).setValues([coins]);
+}
+
+//Creates a standard long date format for implementation into the table.
+function formatDate()
+{
+  var timezone = "Australia/Brisbane";
+  var today = new Date();
+  return formattedDate = Utilities.formatDate(today, timezone, "EEEEE, MMMMM d, yyyy")
+}
+
+//Checks the table to see if an entry for today is present. 
+function isDateSameAsToday() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Cash Data");
+  var lastRow = sheet.getLastRow();
+  
+  // Get the date value from the first column of the last row
+  var lastRowDateValue = sheet.getRange(lastRow, 1).getValue();
+  
+  // Get today's date
+  var today = new Date();
+  
+  var timeZone = "Australia/Brisbane";
+  var formattedLastRowDate = Utilities.formatDate(lastRowDateValue, timeZone, "dd/MM/yyyy");
+  var formattedToday = Utilities.formatDate(today, timeZone, "dd/MM/yyyy");
+  
+  // Check if the dates are the same
+  if (formattedLastRowDate === formattedToday) 
+  {
+    return true;
+  } else
+  {
+    return false;
+  }
+}
